@@ -1,0 +1,144 @@
+:root{
+    --color-bg: #12151a;
+    --color-panel: #1c2128;
+    --color-border: #2c333d;
+    --color-amber: #f5a623;
+    --color-teal: #34d3ac;
+    --color-text: #e6e6e6;
+    --color-text-dim: #8b929c;
+
+    --font-heading: 'Rajdhani', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+}
+
+body{
+
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    margin: 0;
+    padding: 2rem;
+}
+
+h1{
+    font-family: var(--font-heading);
+    color: var(--color-amber);
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.topbar{
+    border-bottom: 2px solid var(--color-amber);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.topbar h1{
+    margin: 0;
+    font-size: 2rem;
+}
+
+.subtitle{
+    font-family: var(--font-mono);
+    color: var(--color-text-dim);
+    font-size: 0.9rem;
+}
+
+.panel-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.panel{
+    background-color: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 1.5rem;
+}
+
+.panel h2{
+    font-family: var(--font-heading);
+    color: var(--color-teal);
+    margin-top: 0;
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+}
+
+
+/* ---------- Primary action button ---------- */
+.btn-primary {
+    /* background/text colors use our amber accent, since this is a "primary action" */
+    background-color: var(--color-amber);
+    color: var(--color-bg);       /* dark text on light-amber button = readable contrast */
+    border: none;                 /* remove default browser button border */
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;              /* shows a hand/pointer cursor on hover, signals "clickable" */
+    letter-spacing: 0.5px;
+}
+
+.btn-primary:hover {
+    /* slightly dim the button on hover, gives feedback that it's interactive */
+    opacity: 0.85;
+}
+
+/* ---------- Image preview box ---------- */
+.image-preview {
+    margin-top: 1rem;
+    height: 180px;
+    border: 1px dashed var(--color-border);   /* dashed = "this is an empty placeholder area" convention */
+    border-radius: 4px;
+    display: flex;              /* flex lets us easily center the placeholder text inside */
+    align-items: center;        /* vertical centering */
+    justify-content: center;    /* horizontal centering */
+}
+
+.placeholder-text {
+    color: var(--color-text-dim);
+    font-size: 0.85rem;
+}
+
+
+.plan-list{
+    margin-top: 1rem;
+    padding-left: 1.2rem;
+    min-height: 130px;
+}
+
+.plan-list li{
+    margin-bottom: 0.4rem;
+    font-size:0.9rem;
+}
+
+.plan-list .placeholder-text{
+    list-style: none;
+}
+
+.servo-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.servo-row:last-child{
+    border-bottom: none;
+}
+
+.servo-label{
+    font-family: var(--font-heading);
+    color: var(--color-text-dim);
+    font-size: 0.95rem;
+}
+
+.servo-value{
+    font-family: var(--font-mono);
+    color: var(--color-teal);
+    font-size: 1.1rem;
+    font-weight: 600;
+}

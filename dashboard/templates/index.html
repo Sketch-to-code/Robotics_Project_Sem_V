@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <title>SortBench</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">        
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        
+        <header class="topbar">
+            <h1>SORTBENCH</h1>
+            <span class="subtitle">Robotic Cube Sorter - Control Panel</span>
+
+        </header>
+
+        <main class="panel-grid">
+            <section class="panel" id="scan-panel">
+                <h2>Scan</h2>
+                <button class="btn-primary" id="scan-btn">Scan Cubes</button>
+
+                <div class="image-preview" id="scan-preview">
+                    <span class="placeholder-text"> No image yet</span>
+                </div>
+            </section>
+
+            <section class="panel" id="plan-panel">
+                <h2>Plan</h2>
+                
+                <button class="btn-primary" id="plan-btn">Generate Plan</button>
+
+                <ol class="plan-list" id="plan-list">
+                    <li class="placeholder-text">No plan yet</li>
+                </ol>
+            </section>
+
+            <section class=" panel" id="servo-panel">
+                <h2>Servo Status</h2>
+                <div class="servo-row" data-servo="base">
+                    <span class="servo-label">Base</span>
+                    <span class="servo-value">0&deg;</span>
+                </div>
+
+                <div class="servo-row" data-servo="shoulder">
+                    <span class="servo-label">Shoulder</span>
+                    <span class="servo-value">0&deg;</span>
+                </div>
+
+                <div class="servo-row" data-servo="elbow">
+                    <span class="servo-label">Elbow</span>
+                    <span class="servo-value">0&deg;</span>
+                </div>
+
+                <div class="servo-row" data-servo="gripper">
+                    <span class="servo-label">Gripper</span>
+                    <span class="servo-value">0&deg;</span>
+                </div>
+            </section>
+
+
+        </main>
+        <script src="{{ url_for('static', filename='script.js') }}"></script>            
+    </body>
+</html>
