@@ -1,63 +1,175 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <title>SortBench</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">        
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    </head>
-    <body>
-        
-        <header class="topbar">
-            <h1>SORTBENCH</h1>
-            <span class="subtitle">Robotic Cube Sorter - Control Panel</span>
+<head>
+    <title>SortBench</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+    <style>
+        body { background:#111; color:#eee; font-family:'IBM Plex Mono',monospace; padding:20px; }
+        h1 { font-family:'Rajdhani',sans-serif; color:#f5a623; letter-spacing:2px; }
+        h2 { font-family:'Rajdhani',sans-serif; color:#34d3ac; letter-spacing:1px; font-size:18px; margin-top:30px; }
+        button { background:#34d3ac; color:#111; border:none; padding:10px 20px; font-family:'Rajdhani',sans-serif; font-weight:700; cursor:pointer; margin-right:10px; }
+        button:disabled { background:#555; color:#999; cursor:not-allowed; }
+        button.secondary { background:#f5a623; }
+        select, input[type=text] { background:#1a1a1a; color:#eee; border:1px solid #34d3ac; padding:8px; font-family:'IBM Plex Mono',monospace; }
+        .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px; }
+        #result, #planResult, #execResult { margin-top:20px; }
+        img { max-width:500px; border:2px solid #34d3ac; margin-top:10px; display:block; }
+        table { border-collapse:collapse; margin-top:10px; }
+        td, th { border:1px solid #333; padding:6px 12px; text-align:left; }
+        th { color:#f5a623; }
+        .stat { color:#34d3ac; font-weight:700; }
+        .hidden { display:none; }
+        .note { color:#888; font-size:13px; margin-top:6px; }
+    </style>
+</head>
+<body>
+    <h1>SORTBENCH CONTROL PANEL</h1>
 
-        </header>
+    <div class="controls">
+        <button onclick="runScan()">SCAN</button>
+        <span id="scanStatus" class="note"></span>
+    </div>
 
-        <main class="panel-grid">
-            <section class="panel" id="scan-panel">
-                <h2>Scan</h2>
-                <button class="btn-primary" id="scan-btn">Scan Cubes</button>
+    <!-- Phone Camera Upload Section -->
+    <div class="controls" style="margin-top: 15px;">
+        <label for="phoneImageInput" style="background: #34d3ac; color: #111; border: none; padding: 10px 20px; font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer; display: inline-block;">
+            📸 Capture Live Cube Photo
+        </label>
+        <input type="file" id="phoneImageInput" accept="image/*" capture="environment" style="display: none;" onchange="uploadPhoneImage()">
+        <span id="uploadStatus" class="note"></span>
+    </div>
 
-                <div class="image-preview" id="scan-preview">
-                    <span class="placeholder-text"> No image yet</span>
-                </div>
-            </section>
+    <div id="result"></div>
 
-            <section class="panel" id="plan-panel">
-                <h2>Plan</h2>
-                
-                <button class="btn-primary" id="plan-btn">Generate Plan</button>
+    <h2>SORT PLAN</h2>
+    <div class="controls">
+        <select id="sortMode" onchange="toggleCustomInput()">
+            <option value="ascending">Ascending (0 → 9)</option>
+            <option value="descending">Descending (9 → 0)</option>
+            <option value="odd_even">Odd / Even</option>
+            <option value="group_by_digit">Group by digit (clustered, no forced order)</option>
+            <option value="custom">Custom priority order</option>
+        </select>
+        <input type="text" id="customOrder" class="hidden" placeholder="e.g. 5,3,1,0,2,4,6,7,8,9">
+        <button onclick="runPlan()" id="planBtn" disabled>PLAN SORT</button>
+        <button onclick="runExecute()" id="execBtn" class="secondary" disabled>EXECUTE (SIMULATED)</button>
+    </div>
+    <div id="planResult"></div>
+    <div id="execResult"></div>
 
-                <ol class="plan-list" id="plan-list">
-                    <li class="placeholder-text">No plan yet</li>
-                </ol>
-            </section>
+    <script>
+        let hasScanned = false;
 
-            <section class=" panel" id="servo-panel">
-                <h2>Servo Status</h2>
-                <div class="servo-row" data-servo="base">
-                    <span class="servo-label">Base</span>
-                    <span class="servo-value">0&deg;</span>
-                </div>
+        function toggleCustomInput() {
+            const mode = document.getElementById('sortMode').value;
+            document.getElementById('customOrder').classList.toggle('hidden', mode !== 'custom');
+        }
 
-                <div class="servo-row" data-servo="shoulder">
-                    <span class="servo-label">Shoulder</span>
-                    <span class="servo-value">0&deg;</span>
-                </div>
+        async function uploadPhoneImage() {
+            const input = document.getElementById('phoneImageInput');
+            const statusSpan = document.getElementById('uploadStatus');
+            if (input.files.length === 0) return;
 
-                <div class="servo-row" data-servo="elbow">
-                    <span class="servo-label">Elbow</span>
-                    <span class="servo-value">0&deg;</span>
-                </div>
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
 
-                <div class="servo-row" data-servo="gripper">
-                    <span class="servo-label">Gripper</span>
-                    <span class="servo-value">0&deg;</span>
-                </div>
-            </section>
+            statusSpan.textContent = "Uploading phone image...";
 
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.status === 'ok') {
+                    statusSpan.textContent = "Uploaded successfully! Ready to scan.";
+                } else {
+                    statusSpan.textContent = "Upload failed: " + result.message;
+                }
+            } catch (err) {
+                statusSpan.textContent = "Error uploading image.";
+            }
+        }
 
-        </main>
-        <script src="{{ url_for('static', filename='script.js') }}"></script>            
-    </body>
+        async function runScan() {
+            document.getElementById('scanStatus').textContent = "Scanning...";
+            document.getElementById('result').innerHTML = "";
+            const res = await fetch('/api/scan');
+            const data = await res.json();
+
+            if (data.status !== "ok") {
+                document.getElementById('scanStatus').textContent = "Scan failed.";
+                return;
+            }
+
+            hasScanned = true;
+            document.getElementById('planBtn').disabled = false;
+            document.getElementById('scanStatus').textContent = `${data.cubes_found} cube(s) found`;
+
+            let rows = data.cubes.map(c =>
+                `<tr><td>#${c.id}</td><td>${c.predicted_digit}</td><td>${c.confidence}%</td></tr>`
+            ).join('');
+
+            document.getElementById('result').innerHTML = `
+                <img src="${data.annotated_image_url}">
+                <table>
+                    <tr><th>Cube</th><th>Digit</th><th>Confidence</th></tr>
+                    ${rows}
+                </table>
+            `;
+        }
+
+        function currentModeParams() {
+            const mode = document.getElementById('sortMode').value;
+            const custom = document.getElementById('customOrder').value.trim();
+            let qs = `mode=${encodeURIComponent(mode)}`;
+            if (mode === 'custom') qs += `&custom_order=${encodeURIComponent(custom)}`;
+            return qs;
+        }
+
+        async function runPlan() {
+            document.getElementById('planResult').innerHTML = "Planning...";
+            const res = await fetch(`/api/plan?${currentModeParams()}`);
+            const data = await res.json();
+
+            if (data.status !== "ok") {
+                document.getElementById('planResult').innerHTML = `Error: ${data.message}`;
+                return;
+            }
+
+            document.getElementById('execBtn').disabled = false;
+
+            let rows = data.steps.map(s =>
+                `<tr><td>${s.step}</td><td>#${s.cube_id}</td><td>${s.digit}</td><td>slot ${s.slot_index}</td>
+                 <td>(${s.pick_px[0]}, ${s.pick_px[1]})</td><td>(${s.place_px[0]}, ${s.place_px[1]})</td></tr>`
+            ).join('');
+
+            document.getElementById('planResult').innerHTML = `
+                <p>Total travel: <span class="stat">${data.total_distance}</span> px
+                   &nbsp;|&nbsp; naive order: ${data.baseline_distance} px
+                   &nbsp;|&nbsp; saved: <span class="stat">${data.savings_pct}%</span></p>
+                <table>
+                    <tr><th>Step</th><th>Cube</th><th>Digit</th><th>Dest Slot</th><th>Pick (px)</th><th>Place (px)</th></tr>
+                    ${rows}
+                </table>
+            `;
+        }
+
+        async function runExecute() {
+            document.getElementById('execResult').innerHTML = "Executing (simulated)...";
+            const res = await fetch(`/api/execute?${currentModeParams()}`);
+            const data = await res.json();
+
+            if (data.status === "error") {
+                document.getElementById('execResult').innerHTML = `Error: ${data.message}`;
+                return;
+            }
+
+            document.getElementById('execResult').innerHTML = `
+                <p class="note">${data.note}</p>
+                <p>${data.steps.length} step(s) simulated. Total travel: <span class="stat">${data.total_distance}</span> px</p>
+            `;
+        }
+    </script>
+</body>
 </html>
